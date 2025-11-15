@@ -47,6 +47,7 @@ bool maxDepth(Node* root, int& height){
 
 
 
+
 bool equalPaths(Node * root)
 {
 	int height = 0;

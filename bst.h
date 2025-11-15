@@ -247,7 +247,8 @@ protected:
     virtual void nodeSwap( Node<Key,Value>* n1, Node<Key,Value>* n2) ;
 
     // Add helper functions here
-		virtual void BinarySearchTree<Key, Value>::clearRecurrsion(Node<Key, Value>* node);
+		virtual void clearRecurrsion(Node<Key, Value>* node);
+		virtual int isBalancedRecursion(Node<Key, Value>* node);
 
 
 protected:
@@ -363,6 +364,8 @@ template<typename Key, typename Value>
 BinarySearchTree<Key, Value>::~BinarySearchTree()
 {
     // TODO
+
+	clear();
 
 }
 
@@ -657,6 +660,20 @@ Node<Key, Value>*
 BinarySearchTree<Key, Value>::getSmallestNode() const
 {
     // TODO
+
+		if(root_ == nullptr){
+			return nullptr;
+		}
+
+		Node<Key, Value>* currNode = root_;
+
+		while(currNode->getLeft() != nullptr){
+			currNode = currNode->getLeft();
+		}
+
+		return currNode;
+
+
 }
 
 /**
@@ -673,19 +690,41 @@ Node<Key, Value>* BinarySearchTree<Key, Value>::internalFind(const Key& key) con
 	}
 	Node<Key, Value>* currNode = root_;
 
-	if(currNode == nullptr){
-		return; 
-	}
-	if(currNode->getKey() == key){
-		return currNode;
-	} else if( currNode->getKey() < key){
-		currNode = currNode->getLeft();
-				
+	while(currNode != nullptr){
+
+		if(currNode->getKey() == key)
+		{
+			return currNode;
+		} 
+		else if( currNode->getKey() > key)
+		{
+			currNode = currNode->getLeft();
+		}
+		else
+		{
+			currNode = currNode->getRight();
+		}
 	}
 
-
+	return nullptr;
 
 }
+
+template<typename Key, typename Value>
+int BinarySearchTree<Key, Value>::isBalancedRecursion(Node<Key, Value>* node){
+	if(node == nullptr){
+		return 0;
+	}
+	int leftHeight = isBalancedRecursion(node->getLeft());
+	int rightHeight = isBalancedRecursion(node->getRight());
+
+	if(leftHeight == -1 || rightHeight == -1 || abs(leftHeight - rightHeight) > 1){
+		return -1;
+	}
+
+	return max(leftHeight, rightHeight) + 1;
+}
+
 
 /**
  * Return true iff the BST is balanced.
@@ -694,7 +733,11 @@ template<typename Key, typename Value>
 bool BinarySearchTree<Key, Value>::isBalanced() const
 {
     // TODO
+	
+	return isBalancedRecursion(root_) != -1;
 }
+
+
 
 
 
