@@ -5,6 +5,8 @@
 #include <exception>
 #include <cstdlib>
 #include <utility>
+#include <algorithm>
+#include <cmath> 
 
 /**
  * A templated class for a Node in a search tree.
@@ -248,7 +250,7 @@ protected:
 
     // Add helper functions here
 		virtual void clearRecurrsion(Node<Key, Value>* node);
-		virtual int isBalancedRecursion(Node<Key, Value>* node);
+		virtual int isBalancedRecursion(Node<Key, Value>* node) const;
 
 
 protected:
@@ -266,19 +268,17 @@ Begin implementations for the BinarySearchTree::iterator class.
 * Explicit constructor that initializes an iterator with a given node pointer.
 */
 template<class Key, class Value>
-BinarySearchTree<Key, Value>::iterator::iterator(Node<Key,Value> *ptr)
+BinarySearchTree<Key, Value>::iterator::iterator(Node<Key,Value> *ptr) : current_(ptr)
 {
-    // TODO
 }
 
 /**
 * A default constructor that initializes the iterator to NULL.
 */
 template<class Key, class Value>
-BinarySearchTree<Key, Value>::iterator::iterator() 
+BinarySearchTree<Key, Value>::iterator::iterator(): current_(nullptr)
 {
-    // TODO
-
+    // TODO =COMPELT
 }
 
 /**
@@ -311,6 +311,7 @@ BinarySearchTree<Key, Value>::iterator::operator==(
     const BinarySearchTree<Key, Value>::iterator& rhs) const
 {
     // TODO
+		return this->current_ == rhs.current_;
 }
 
 /**
@@ -323,6 +324,7 @@ BinarySearchTree<Key, Value>::iterator::operator!=(
     const BinarySearchTree<Key, Value>::iterator& rhs) const
 {
     // TODO
+		return this->current_ != rhs.current_;
 
 }
 
@@ -335,7 +337,26 @@ typename BinarySearchTree<Key, Value>::iterator&
 BinarySearchTree<Key, Value>::iterator::operator++()
 {
     // TODO
+		if(current_ == nullptr){
+			return *this;
+		}
 
+		if(current_->getRight() != nullptr){
+			current_= current_->getRight();
+			while(current_->getLeft()!= nullptr){
+				current_ = current_->getLeft();
+			}
+		}
+		else { 
+			Node<Key, Value>*parent = current_->getParent();
+			while(parent != nullptr && current_ == parent->getRight()){
+				current_ = parent;
+				parent = parent->getParent();
+			}
+			current_ = parent;
+		}
+
+		return *this;
 }
 
 
@@ -508,11 +529,11 @@ void BinarySearchTree<Key, Value>::insert(const std::pair<const Key, Value> &key
 
 		parent = currNode;
 
-		if(keyValuePair.first == curr->getKey()){
+		if(keyValuePair.first == currNode->getKey()){
 			currNode->setValue(keyValuePair.second);
 			return;
 		}
-		else if(keyValuePair.first < curr->getKey()){
+		else if(keyValuePair.first < currNode->getKey()){
 			currNode = currNode->getLeft();
 		}
 		else { 
@@ -542,31 +563,7 @@ void BinarySearchTree<Key, Value>::insert(const std::pair<const Key, Value> &key
 template<typename Key, typename Value>
 void BinarySearchTree<Key, Value>::remove(const Key& key)
 {
-	
-	/*
 
-		Node<Key, Value>* node = internalFind(key);
-
-
-		if(node == nulltr){
-			return;
-		}
-
-		Case 2 - Node has 0 children 
-		remove node
-		if(node->getLeft != nullptr && node->right != nulltpr)
-
-			Node<Key, Value>* pred = predecessor(node);
-			nodeSwap(node, pred);
-			node = pred;
-
-		Case 3 - Node has 1 child
-			if pred != nullptr [
-				swap nodes
-			]
-
-		Case 4- Node has 2 children
-	*/
 
 	Node<Key, Value>* node = internalFind(key);
 
@@ -578,18 +575,12 @@ void BinarySearchTree<Key, Value>::remove(const Key& key)
 		//2 children 
 		if(node->getLeft() != nullptr && node->getRight() != nullptr){
 			Node<Key, Value>* pred = predecessor(node);
-			nodeSwap(node,pred);
-			node = pred;
+			nodeSwap(node, pred);
 		}
 
 	// afeter swap 1 child 
-		Node<Key, Value>* childToReplace = nullptr;
-		if(node->getLeft() != nullptr){
-			childToReplace = node->getLeft();
-		} else {
-			childToReplace = node->getRight();
-		}
-
+		Node<Key, Value>* childToReplace = (node->getLeft() != nullptr ? node->getLeft() : node->getRight());
+	
 		Node<Key, Value>* parent = node->getParent();
 
 		if(childToReplace != nullptr){
@@ -609,7 +600,6 @@ void BinarySearchTree<Key, Value>::remove(const Key& key)
 
 		delete node;
 
-	return;
 }
 
 
@@ -619,6 +609,24 @@ Node<Key, Value>*
 BinarySearchTree<Key, Value>::predecessor(Node<Key, Value>* current)
 {
     // TODO
+		if(current == nullptr){
+			return nullptr;
+		}
+
+		if(current->getLeft() != nullptr){
+			Node<Key, Value>* prevNode = current->getLeft();
+			while(prevNode->getRight() != nullptr){
+				prevNode = prevNode->getRight();
+			}
+			return prevNode;
+		}
+
+		Node<Key,Value>* parentNode = current->getParent();
+		while(parentNode != nullptr && current == parentNode->getLeft()){
+			current = parentNode;
+			parentNode = parentNode->getParent();
+		}
+		return parentNode;
 }
 
 
@@ -711,7 +719,7 @@ Node<Key, Value>* BinarySearchTree<Key, Value>::internalFind(const Key& key) con
 }
 
 template<typename Key, typename Value>
-int BinarySearchTree<Key, Value>::isBalancedRecursion(Node<Key, Value>* node){
+int BinarySearchTree<Key, Value>::isBalancedRecursion(Node<Key, Value>* node) const{
 	if(node == nullptr){
 		return 0;
 	}
@@ -722,7 +730,7 @@ int BinarySearchTree<Key, Value>::isBalancedRecursion(Node<Key, Value>* node){
 		return -1;
 	}
 
-	return max(leftHeight, rightHeight) + 1;
+	return std::max(leftHeight, rightHeight) + 1;
 }
 
 
